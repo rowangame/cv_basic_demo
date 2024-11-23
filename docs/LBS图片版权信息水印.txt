@@ -1,0 +1,27 @@
+https://zhuanlan.zhihu.com/p/89765000
+
+def image_add(copyright_image, original_image, alpha):
+    """
+    add copyright image into original image
+    
+    :param copyright_image: RGB image with numpy type
+    :param original_image: RGB image with numpy type
+    :param alpha: weight for copyright image when images add
+    :return: the image that had been added
+    """
+    # 1：确认输入的版权图片长度和宽度必须小于原始图片
+    if copyright_image.shape[0] > original_image.shape[0] or \
+                    copyright_image.shape[1] > original_image.shape[1]:
+        raise ValueError("copyright image must be smaller than original image")
+
+    original_image = original_image.astype(np.float32)
+    copyright_image = copyright_image.astype(np.float32)
+
+    # 2：获取原始图片的备份，计算中不能改变原始图片像素值
+    added_image = original_image.copy()
+
+    # 3：按照alpha作为权重实现加法
+    h, w = copyright_image.shape[0], copyright_image.shape[1]
+    added_image[0:h, 0:w, :] = alpha * copyright_image + (1-alpha)*original_image[0:h, 0:w, :]
+
+    return added_image

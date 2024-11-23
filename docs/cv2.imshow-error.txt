@@ -1,0 +1,14 @@
+https://blog.csdn.net/biong188/article/details/116172286
+
+cv2.imshow("result", img)
+cv2.error: OpenCV(4.5.1) C:\Users\appveyor\AppData\Local\Temp\1\pip-req-build-memyuvq3\opencv\modules\highgui\src\window.cpp:651: error: (-2:Unspecified error) The function is not implemented. Rebuild the libra
+ry with Windows, GTK+ 2.x or Cocoa support. If you are on Ubuntu or Debian, install libgtk2.0-dev and pkg-config, then re-run cmake or configure script in function 'cvShowImage'
+
+不知道什么原因重装一下opencv-contrib-python插件就行
+
+1.
+pip uninstall opencv-contrib-python
+
+2. 
+pip install opencv-contrib-python
+

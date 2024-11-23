@@ -1,0 +1,17 @@
+https://zhuanlan.zhihu.com/p/406769781
+
+// colorT，alphaT：表示前景色和前景色的透明度
+// colorB，alphaB：表示背景色和背景色的透明度
+// colorF，alphaF：表示计算得到的颜色和透明度
+alphaF = alphaT + alphaB*(1 - alphaT);
+// r,g,b 分别计算
+colorF = (colorT*alphaT + colorB*alphaB*(1 - alphaT)) / alphaF;
+当前景色透明度为1时，colorF = colorT，当前景色透明度为0时，colorF = colorB；
+
+举个复杂点的 ，50%透明度的红色(255, 0, 0)叠加在蓝色(0,0,255)上，
+
+alphaF = 0.5 + 1 * (1 - 0.5) = 1;
+r = (255 * 0.5 + 0 * 1 * (1 - 0.5)) / 1 = 128;
+g = (0 * 0.5 + 0 * 1 * (1 - 0.5)) / 1 = 0;
+b = (0 * 0.5 + 255 * 1 * (1 - 0.5)) / 1 = 128;
+colorF = 'rgb(128, 0, 128)';

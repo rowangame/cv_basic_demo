@@ -1,0 +1,67 @@
+https://zhuanlan.zhihu.com/p/89765000
+
+改变R、G、B值的最后两个bits，由于值的改变在4以内，所以几乎不会对图像的视觉效果产生明显的影响，也就是人眼很难分辨出“11111111”和“11111100”表示的颜色区别。
+
+LSB算法的核心为：首先，对原始图像的最后1bit（也就是最低位）置零，并不会改变图像的视觉效果；然后，将用1bit表示的版权信息，赋值给原始图像的最后1bit，实现版权信息写入，写入以后依旧不会改变原始图像，观察者也根本看不见版权信息的存在；
+最后，如果需要解码，只需要将图像的前7bits（高7位）置零，仅留下最后1bit（最低位），这最后1bit就是版权信息。
+
+注意：有些资料仅仅对最后1位更改，有些资料选择2-3位更改，我的实现中选取更改最后一位的方式。
+
+2.4 LSB编码过程实现：
+
+理论分析和实际操作总是有些不一致，由于python提供了8bits无符号整型的数据类型，所以想要将后1个bits置零只需要将图片先整除2再乘以2即可整除2使得不是2的整数倍的值都被丢弃，也就是丢弃了最后一位的1和0，再乘以2恢复到0-255区间）。
+
+另外，尽管数据是np.uint8，也就是8bit的无符号整型，但是使用除法"/"依旧会自动转型为浮点计算（猜测：原因是运算符重载）。比如某处像素值为225，会出现225/2=112.5，而不是112。容易让人困惑的是np.uint8的加法和减法是完全限制在0-255之间的，例如2-3=255。
+
+def lsb_encoder(copyright_image, original_image):
+    """
+    add copyright image into original image by LSB 
+    
+    :param copyright_image: RGB image with numpy type
+    :param original_image: RGB image with numpy type
+    :return: the image that had been processd by LSB and informations
+    """
+    # 1: 确保输入图像为8bits无符号整型
+    original_image = original_image.astype(np.uint8)
+    copyright_image = copyright_image.astype(np.uint8)
+    
+    # 2: 对original图像和copyright图像备份，不能在原图上更改
+    watermark = original_image.copy() 
+    copyright = copyright_image.copy() 
+    
+    # 3：将copyright二值化，使其仅含0和1，用1bit表示
+    copyright[copyright<200] = 1
+    copyright[copyright>=200] = 0
+
+    # 4：将watermark的最后1bit的R、G、B全部置零
+    #     也可以仅仅对R通道置零
+    for i in range(0, watermark.shape[0]):
+        for j in range(0, watermark.shape[1]):
+            watermark[i, j , :] = (watermark[i, j, :]//2)*2
+            
+    for i in range(0, copyright.shape[0]):
+        for j in range(0, copyright.shape[1]):
+            # 5：将用1bit表示的二值化的水印信息
+            #   添加到watermark最后1bit上
+            watermark[i, j, 0] = watermark[i, j, 0] + copyright[i, j, 0]
+        
+    return watermark
+
+2.5 LSB解码过程实现
+
+如果需要获取图片中的版权信息，需要将图片中的“最低有效位”提取出来，即对前7位置零，仅留存了最低有效位。获取最低有效位（最后1bit）时，我直接除以2取余数，如果最后1bit为1则得到1，如果最后1bit为0则得到0，需要注意的是必须要确认输入图像的数据类型为8位无符号整型。
+
+def lsb_decoder(watermark_image):
+    """
+    obtain copyright image from watermark image that processd by LSB 
+    
+    :param watermark_image_image: RGB image with numpy type
+    :returns: copyright image
+    """
+    watermark_image = watermark_image.astype(np.uint8)
+    
+    # 获取watermark图像的备份，不在原图上更改
+    watermark = watermark_image.copy()
+    watermark_copyright = (watermark_image % 2) * 255
+    
+    return watermark_copyright
